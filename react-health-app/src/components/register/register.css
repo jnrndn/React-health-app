@@ -1,0 +1,37 @@
+.container {
+  width: 80%;
+  margin-left: 10%;
+}
+
+.title {
+  text-align: center;
+  text-transform: uppercase;
+}
+
+.form {
+  display: flex;
+  flex-direction: column;
+}
+
+.text-input {
+  display: flex;
+  flex-direction: row;
+  justify-content: center;
+  align-content: stretch;
+}
+
+.MuiFormControl-root.input {
+  flex: 1;
+  margin: 10px;
+}
+
+.paper-root {
+  display: flex;
+  justify-content: center;
+  flex-wrap: wrap;
+  padding: 0.5em;
+}
+
+.chip {
+  margin: 0.5em;
+}
