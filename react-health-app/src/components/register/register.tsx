@@ -4,6 +4,8 @@ import { TextField, Button, Chip, Paper } from "@material-ui/core";
 import { MuiPickersUtilsProvider, DatePicker } from "@material-ui/pickers";
 import DateFnsUtils from "@date-io/date-fns";
 import { registerUser } from "./../../api/patient.service";
+import { ValidatorForm, TextValidator } from "react-material-ui-form-validator";
+
 import "./register.css";
 
 export interface IRegisterUser {
@@ -31,10 +33,6 @@ function RegisterForm() {
   const [userIllness, setUserIllness] = useState<ChipData[]>([]);
   const [isSaveButtonEnabled, enableSaveButton] = useState(false);
 
-  useEffect(() => {
-    isValidForm();
-  }, [userId, birthDate, userFirstName, userLastName, userIllness]);
-
   const handleIdChange = (
     event: React.ChangeEvent<HTMLTextAreaElement | HTMLInputElement>
   ) => {
@@ -60,10 +58,9 @@ function RegisterForm() {
     setUserLastName(lastName);
   };
 
-  const handleUserEmailChange = (
-    event: React.ChangeEvent<HTMLTextAreaElement | HTMLInputElement>
-  ) => {
-    const email = event.target.value;
+  const handleUserEmailChange = (event: React.FormEvent<any>) => {
+    const email = (event.target as HTMLTextAreaElement | HTMLInputElement)
+      .value;
     setUserEmail(email);
   };
 
@@ -79,7 +76,7 @@ function RegisterForm() {
   };
 
   const handleDeleteChip = (data: ChipData) => {
-    setUserIllness(chips => chips.filter(chip => chip.key !== data.key));
+    setUserIllness((chips) => chips.filter((chip) => chip.key !== data.key));
   };
 
   const handleSubmit = () => {
@@ -89,42 +86,9 @@ function RegisterForm() {
       firstName: userFirstName,
       lastName: userLastName,
       email: userEmail,
-      illness: userIllness
+      illness: userIllness,
     };
     registerUser(user);
-  };
-
-  const isValidText = (value: string) => value === "" || value.length > 0 && value.length < 21;
-  const isValidIllness = (chips: any) => chips.length === 0 || chips.length < 21
-
-  const textLengthError = "Please do not exceed id length";
-  const illnessError = "You can not add more than 20 illness";
-
-  const isValidForm = () => {
-    enableSaveButton(false);
-    if (userId) {
-      if(isValidText(userId)){
-        enableSaveButton(true);
-      }
-    }
-    if(birthDate !== null){
-      enableSaveButton(true);
-    }
-    if(userFirstName){
-      if(isValidText(userFirstName)){
-        enableSaveButton(true);
-      } 
-    }
-    if(userLastName){
-      if(isValidText(userLastName)){
-        enableSaveButton(true);
-      }
-    }
-    if(userIllness){
-      if(isValidIllness(userIllness)){
-        enableSaveButton(true);
-      }
-    }
   };
 
   return (
@@ -132,7 +96,12 @@ function RegisterForm() {
       <div className="title">
         <h1>Add New Patitent</h1>
       </div>
-      <form className="form">
+      <ValidatorForm
+        className="form"
+        useref="form"
+        onSubmit={() => handleSubmit()}
+        onError={(errors) => console.log(errors)}
+      >
         <div className="text-input">
           <TextField
             className="input"
@@ -141,9 +110,7 @@ function RegisterForm() {
             label="ID"
             variant="outlined"
             value={userId}
-            onChange={event => handleIdChange(event)}
-            error={!isValidText(userId)}
-            helperText={!isValidText(userId) && textLengthError}
+            onChange={(event) => handleIdChange(event)}
           />
           <MuiPickersUtilsProvider utils={DateFnsUtils}>
             <DatePicker
@@ -154,7 +121,7 @@ function RegisterForm() {
               className="input"
               format="MM/dd/yyyy"
               value={birthDate}
-              onChange={event => handleBirthDateChange(event)}
+              onChange={(event) => handleBirthDateChange(event)}
             />
           </MuiPickersUtilsProvider>
         </div>
@@ -166,9 +133,7 @@ function RegisterForm() {
             label="First Name"
             variant="outlined"
             value={userFirstName}
-            onChange={event => handleUserFirstNameChange(event)}
-            error={!isValidText(userFirstName)}
-            helperText={!isValidText(userFirstName) && textLengthError}
+            onChange={(event) => handleUserFirstNameChange(event)}
           />
           <TextField
             className="input"
@@ -177,22 +142,22 @@ function RegisterForm() {
             label="Last Name"
             variant="outlined"
             value={userLastName}
-            onChange={event => handleUserLastNameChange(event)}
-            error={!isValidText(userLastName)}
-            helperText={!isValidText(userLastName) && textLengthError}
+            onChange={(event) => handleUserLastNameChange(event)}
           />
         </div>
         <div className="text-input">
-          <TextField
+          <TextValidator
             className="input"
             id="email"
-            required
-            label="E-mail"
+            label="Email"
             variant="outlined"
             type="email"
+            name="email"
             fullWidth
             value={userEmail}
-            onChange={event => handleUserEmailChange(event)}
+            onChange={(event) => handleUserEmailChange(event)}
+            validators={["required", "isEmail"]}
+            errorMessages={["this field is required", "email is not valid"]}
           />
         </div>
         <div className="text-input">
@@ -201,17 +166,15 @@ function RegisterForm() {
             id="ilness"
             label="Illness"
             variant="outlined"
-            onKeyUp={event =>
+            onKeyUp={(event) =>
               event.keyCode === 13 ? handleIllnessChange(event) : null
             }
-            error={!isValidIllness(userIllness)}
-            helperText={!isValidIllness(userIllness) && illnessError}
           />
         </div>
         <div className="text-input">
           {userIllness.length !== 0 && (
             <Paper className="paper-root">
-              {userIllness.map(data => {
+              {userIllness.map((data) => {
                 return (
                   <Chip
                     className="chip"
@@ -225,15 +188,11 @@ function RegisterForm() {
           )}
         </div>
         <div>
-          <Button 
-          disabled={!isSaveButtonEnabled}
-          variant="contained" 
-          color="primary" 
-          onChange={handleSubmit}>
+          <Button type="submit" variant="contained" color="primary">
             Save
           </Button>
         </div>
-      </form>
+      </ValidatorForm>
     </div>
   );
 }
